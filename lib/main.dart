@@ -35,13 +35,8 @@ class GpsMapAppState extends State<GpsMapApp> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
-
-  static const CameraPosition _kLake = CameraPosition(
-    bearing: 192.8334901395799,
-    target: LatLng(37.43296265331129, -122.08832357078792),
-    tilt: 59.440717697143555,
-    zoom: 19.151926040649414,
-  );
+  // 위치를 받은 다음에 받을 수 있으므로 nullable
+  CameraPosition? _initialCameraPosition;
 
   @override
   void initState() {
@@ -51,20 +46,28 @@ class GpsMapAppState extends State<GpsMapApp> {
 
   Future init() async {
     final position = await _determinePosition();
-    print({position.toString()});
+
+    _initialCameraPosition = CameraPosition(
+      target: LatLng(position.latitude, position.longitude),
+      zoom: 17,
+    );
+
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        //mapType: MapType.hybrid,
-        mapType: MapType.normal,
-        initialCameraPosition: _kGooglePlex, // 처음 시작지점
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+      body: _initialCameraPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : GoogleMap(
+              //mapType: MapType.hybrid,
+              mapType: MapType.normal,
+              initialCameraPosition: _initialCameraPosition!, // 처음 시작지점
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToTheLake,
         label: const Text('To the lake!'),
