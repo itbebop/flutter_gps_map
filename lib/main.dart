@@ -53,6 +53,13 @@ class GpsMapAppState extends State<GpsMapApp> {
     );
 
     setState(() {});
+
+    const locationSettings = LocationSettings();
+    //  Geolocator.getPositionStream(locationSettings: LocationSetings());//기본값으로 할 거라서 이렇게 넣어도 상관없었음
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) {
+      // GoogleMap을 StreamBuilder로 감싸서 처리를 할 수가 없고 controller를 이용해야 하기 때문에 listen으로 값받아서 처리함
+      _moveCamera(position);
+    });
   }
 
   @override
@@ -68,20 +75,14 @@ class GpsMapAppState extends State<GpsMapApp> {
                 _controller.complete(controller);
               },
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: const Text('To the lake!'),
-        icon: const Icon(Icons.directions_boat),
-      ),
     );
   }
 
-  Future<void> _goToTheLake() async {
+  Future<void> _moveCamera(Position position) async {
     final GoogleMapController controller = await _controller.future;
-    final position = await Geolocator.getCurrentPosition();
     final cameraPosition = CameraPosition(
       target: LatLng(position.latitude, position.longitude),
-      zoom: 18,
+      zoom: 17,
     );
     await controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
